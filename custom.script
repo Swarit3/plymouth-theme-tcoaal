@@ -1,0 +1,265 @@
+bgrt_x1 = 0.3;
+bgrt_y1 = 0.1815;
+
+bgrt_image = Image("bgrt.png");
+bgrt_sprite = Sprite(bgrt_image);
+bgrt_sprite.SetX(Window.GetWidth() * bgrt_x1);
+bgrt_sprite.SetY(Window.GetHeight() * bgrt_y1);
+bgrt_sprite.SetZ(0);
+bgrt_x2 = bgrt_x1 + bgrt_image.GetWidth() / Window.GetWidth();
+bgrt_y2 = bgrt_y1 + bgrt_image.GetHeight() / Window.GetHeight();
+
+
+bg_image = Image("background.png");
+bg_sprite = Sprite(bg_image);
+bg_sprite.SetX(Window.GetWidth() / 2 - bg_image.GetWidth() / 2);
+bg_sprite.SetY(Window.GetHeight() / 2 - bg_image.GetHeight() / 2);
+bg_sprite.SetZ(-1);
+bg_sprite.SetOpacity(0);
+
+sprites = [];
+sprite_count = 0;
+added = [];
+fading_out = 0;
+
+fun add_sprite(image_file, x, y) {
+    img = Image(image_file);
+    spr = Sprite(img);
+    px = Window.GetWidth() * x - img.GetWidth() / 2;
+    py = Window.GetHeight() * y - img.GetHeight() / 2;
+    px = Math.Clamp(px, 0, Window.GetWidth() - img.GetWidth());
+    py = Math.Clamp(py, 0, Window.GetHeight() - img.GetHeight());
+    spr.SetX(px);
+    spr.SetY(py);
+    spr.SetZ(1);
+    spr.SetOpacity(global.fading_out);
+    sprites[sprite_count] = spr;
+    sprite_count++;
+}
+
+placed = [];
+placed_count = 0;
+
+fun is_overlapping(x, y, w, h) {
+    // check bgrt
+    px = Window.GetWidth() * x;
+    py = Window.GetHeight() * y;
+    if (px < bgrt_x2 * Window.GetWidth() && px + w > bgrt_x1 * Window.GetWidth() &&
+        py < bgrt_y2 * Window.GetHeight() && py + h > bgrt_y1 * Window.GetHeight())
+        return 1;
+    // check other sprites
+    for (i = 0; i < placed_count; i++) {
+        if (px < placed[i].x + placed[i].w && px + w > placed[i].x &&
+            py < placed[i].y + placed[i].h && py + h > placed[i].y)
+            return 1;
+    }
+    return 0;
+}
+
+fun add_sprite_safe(image_file, margin) {
+    img = Image(image_file);
+    w = img.GetWidth();
+    h = img.GetHeight();
+    attempts = 0;
+    local.x = Math.Random();
+    local.y = Math.Random();
+    while (is_overlapping(local.x, local.y, w + margin, h + margin) && attempts < 50) {
+        local.x = Math.Random();
+        local.y = Math.Random();
+        attempts++;
+    }
+    if (attempts >= 50) return; // give up rather than overlap
+    px = Math.Clamp(Window.GetWidth() * local.x, 0, Window.GetWidth() - w);
+    py = Math.Clamp(Window.GetHeight() * local.y, 0, Window.GetHeight() - h);
+    spr = Sprite(img);
+    spr.SetX(px);
+    spr.SetY(py);
+    spr.SetZ(0);
+    spr.SetOpacity(0);
+    sprite[sprite_count] = spr;
+    sprite_count++;
+    placed[placed_count].x = px;
+    placed[placed_count].y = py;
+    placed[placed_count].w = w;
+    placed[placed_count].h = h;
+    placed_count++;
+}
+
+fun refresh_callback() {
+	op = bg_sprite.GetOpacity();
+	if (op < 0.3){
+	    bg_sprite.SetOpacity(op + (0.3 / (30 * 50)));
+	    }
+    for (i = 0; i < sprite_count; i++) {
+        op = sprites[i].GetOpacity();
+        if (op < 1){
+            sprites[i].SetOpacity(Math.Min(op + 0.02, 1));
+            }
+    }
+    if (fading_out) {
+	    black_sprite.SetOpacity(Math.Min(black_sprite.GetOpacity() + 0.02, 1));
+	}
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun safe_random_pos() {
+    local.x = Math.Random();
+    local.y = Math.Random();
+    while (local.x > bgrt_x1 && local.x < bgrt_x2 && local.y > bgrt_y1 && local.y < bgrt_y2) {
+        local.x = Math.Random();
+        local.y = Math.Random();
+    }
+    local.pos.x = local.x;
+    local.pos.y = local.y;
+    return local.pos;
+}
+
+fun BootRegular(time, progress){
+    if (time >= 1 && !global.added[1]) {
+    	pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        add_sprite_safe("BGF/" + Math.Int(Math.Random() * 5) + ".png", 20);
+        global.added[1] = 1;
+    }
+    if (time >= 3 && !global.added[2]) {
+    	pos = safe_random_pos();
+    	add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        add_sprite_safe("BGF/" + Math.Int(Math.Random() * 5) + ".png", 20);
+        global.added[2] = 1;
+	}
+    if (time >= 6 && !global.added[3]) {
+    	pos = safe_random_pos();
+    	add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        add_sprite_safe("BGF/" + Math.Int(Math.Random() * 5) + ".png", 20);
+        global.added[3] = 1;
+	}
+    if (time >= 9 && !global.added[4]) {
+    	pos = safe_random_pos();
+    	add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+    	pos = safe_random_pos();
+    	add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        global.added[4] = 1;
+	}
+    if (time >= 5 && !global.added[5]) {
+    	pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        global.added[5] = 1;
+	}
+    if (time >= 12 && !global.added[6]) {
+    	pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        add_sprite_safe("BGF/" + Math.Int(Math.Random() * 5) + ".png", 20);
+        global.added[6] = 1;
+	}
+    if (time >= 16 && !global.added[7]) {
+    	pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        global.added[7] = 1;
+	}
+    if (progress >= 1 && !global.added[8]) {
+    	pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("demon/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        pos = safe_random_pos();
+        add_sprite("flower/" + Math.Int(Math.Random() * 10) + ".png", pos.x, pos.y);
+        add_sprite("bunny/pink.png", 0, 0);
+        add_sprite("bunny/green.png", 1, 0);
+        add_sprite("bunny/purple.png", 0, 1);
+        add_sprite("bunny/yellow.png", 1, 1);
+        
+        global.added[8] = 1;
+	}
+
+}
+
+
+if (Plymouth.GetMode() == "boot"){
+	Plymouth.SetBootProgressFunction(BootRegular);
+} else if (Plymouth.GetMode() == "shutdown") {
+	black_image = Image("black.png").Scale(Window.GetWidth(), Window.GetHeight());
+	black_sprite = Sprite(black_image);
+	black_sprite.SetX(0);
+	black_sprite.SetY(0);
+	black_sprite.SetZ(10);
+	black_sprite.SetOpacity(0);
+	Plymouth.SetBootProgressFunction(ShutdownRegular);
+}
+
+fun ShutdownRegular(time, progress) {
+    if (progress >= 0.5 && !global.fading_out)
+    #if (time >= 4 && !global.fading_out)
+        global.fading_out = 1;
+}
+
+for (i = 0; i < 8; i++) {
+    add_sprite("floor_bush.png", Math.Random(), 1);
+}
+for (i = 0; i < 2; i++) {
+    add_sprite("floor_tree.png", Math.Random(), 1);
+}
+for (i = 0; i < 12; i++) {
+    add_sprite("floor_twig.png", Math.Random(), 1);
+}
+
+status_image = Image("status/" + Plymouth.GetMode() + ".png");
+status_text_image = Image("status/" + Plymouth.GetMode() + "_text.png");
+
+status_text_image = status_text_image.Scale(status_text_image.GetWidth() / 2 , status_text_image.GetHeight() / 2);
+status_image = status_image.Scale(status_image.GetWidth() * 1.5 , status_image.GetHeight() * 1.5);
+
+total_width = status_image.GetWidth() + status_text_image.GetWidth();
+start_x = (Window.GetWidth() - total_width) / 2;
+
+status_sprite = Sprite(status_image);
+status_sprite.SetX(start_x);
+status_sprite.SetY(Window.GetHeight() * 0.8);
+status_sprite.SetZ(2);
+
+status_text_sprite = Sprite(status_text_image);
+status_text_sprite.SetX(start_x + status_image.GetWidth());
+status_text_sprite.SetY(Window.GetHeight() * 0.8);
+status_text_sprite.SetZ(2);
