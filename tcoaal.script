@@ -32,10 +32,27 @@ fun add_sprite(image_file, x, y) {
     spr.SetX(px);
     spr.SetY(py);
     spr.SetZ(1);
-    spr.SetOpacity(global.fading_out);
+    spr.SetOpacity(0);
     sprites[sprite_count] = spr;
     sprite_count++;
 }
+
+fun add_sprite_now(image_file, x, y) {
+    img = Image(image_file);
+    spr = Sprite(img);
+    px = Window.GetWidth() * x - img.GetWidth() / 2;
+    py = Window.GetHeight() * y - img.GetHeight() / 2;
+    px = Math.Clamp(px, 0, Window.GetWidth() - img.GetWidth());
+    py = Math.Clamp(py, 0, Window.GetHeight() - img.GetHeight());
+    spr.SetX(px);
+    spr.SetY(py);
+    spr.SetZ(1);
+    spr.SetOpacity(1);
+    sprites[sprite_count] = spr;
+    sprite_count++;
+}
+
+
 
 placed = [];
 placed_count = 0;
@@ -76,7 +93,7 @@ fun add_sprite_safe(image_file, margin) {
     spr.SetY(py);
     spr.SetZ(0);
     spr.SetOpacity(0);
-    sprite[sprite_count] = spr;
+    sprites[sprite_count] = spr;
     sprite_count++;
     placed[placed_count].x = px;
     placed[placed_count].y = py;
@@ -217,7 +234,23 @@ fun BootRegular(time, progress){
 }
 
 
+fun ShutdownRegular(time, progress) {
+    if (progress >= 0.5 && !global.fading_out)
+    #if (time >= 4 && !global.fading_out)
+        global.fading_out = 1;
+}
+
 if (Plymouth.GetMode() == "boot"){
+	for (i = 0; i < 8; i++) {
+	    add_sprite("floor_bush.png", Math.Random(), 1);
+	}
+	for (i = 0; i < 2; i++) {
+	    add_sprite("floor_tree.png", Math.Random(), 1);
+	}
+	for (i = 0; i < 12; i++) {
+	    add_sprite("floor_twig.png", Math.Random(), 1);
+	}
+	
 	Plymouth.SetBootProgressFunction(BootRegular);
 } else if (Plymouth.GetMode() == "shutdown") {
 	black_image = Image("black.png").Scale(Window.GetWidth(), Window.GetHeight());
@@ -226,23 +259,19 @@ if (Plymouth.GetMode() == "boot"){
 	black_sprite.SetY(0);
 	black_sprite.SetZ(10);
 	black_sprite.SetOpacity(0);
+	for (i = 0; i < 8; i++) {
+	    add_sprite_now("floor_bush.png", Math.Random(), 1);
+	}
+	for (i = 0; i < 2; i++) {
+	    add_sprite_now("floor_tree.png", Math.Random(), 1);
+	}
+	for (i = 0; i < 12; i++) {
+	    add_sprite_now("floor_twig.png", Math.Random(), 1);
+	}
+	
+    for (i = 0; i < sprite_count; i++)
+        sprites[i].SetOpacity(1);
 	Plymouth.SetBootProgressFunction(ShutdownRegular);
-}
-
-fun ShutdownRegular(time, progress) {
-    if (progress >= 0.5 && !global.fading_out)
-    #if (time >= 4 && !global.fading_out)
-        global.fading_out = 1;
-}
-
-for (i = 0; i < 8; i++) {
-    add_sprite("floor_bush.png", Math.Random(), 1);
-}
-for (i = 0; i < 2; i++) {
-    add_sprite("floor_tree.png", Math.Random(), 1);
-}
-for (i = 0; i < 12; i++) {
-    add_sprite("floor_twig.png", Math.Random(), 1);
 }
 
 status_image = Image("status/" + Plymouth.GetMode() + ".png");
