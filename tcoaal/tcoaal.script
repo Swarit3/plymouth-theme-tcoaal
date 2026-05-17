@@ -1,5 +1,9 @@
+#You're looking for this:
 bgrt_x1 = 0.3;
+#And this too:
 bgrt_y1 = 0.1815;
+
+
 
 bgrt_image = Image("bgrt.png");
 bgrt_sprite = Sprite(bgrt_image);
@@ -31,7 +35,7 @@ fun add_sprite(image_file, x, y) {
     py = Math.Clamp(py, 0, Window.GetHeight() - img.GetHeight());
     spr.SetX(px);
     spr.SetY(py);
-    spr.SetZ(1);
+    spr.SetZ(2);
     spr.SetOpacity(0);
     sprites[sprite_count] = spr;
     sprite_count++;
@@ -46,7 +50,7 @@ fun add_sprite_now(image_file, x, y) {
     py = Math.Clamp(py, 0, Window.GetHeight() - img.GetHeight());
     spr.SetX(px);
     spr.SetY(py);
-    spr.SetZ(1);
+    spr.SetZ(2);
     spr.SetOpacity(1);
     sprites[sprite_count] = spr;
     sprite_count++;
@@ -91,7 +95,7 @@ fun add_sprite_safe(image_file, margin) {
     spr = Sprite(img);
     spr.SetX(px);
     spr.SetY(py);
-    spr.SetZ(0);
+    spr.SetZ(1);
     spr.SetOpacity(0);
     sprites[sprite_count] = spr;
     sprite_count++;
@@ -235,8 +239,8 @@ fun BootRegular(time, progress){
 
 
 fun ShutdownRegular(time, progress) {
-    if (progress >= 0.5 && !global.fading_out)
-    #if (time >= 4 && !global.fading_out)
+    #if (progress >= 0.5 && !global.fading_out)
+    if (time >= 4 && !global.fading_out)
         global.fading_out = 1;
 }
 
@@ -252,7 +256,7 @@ if (Plymouth.GetMode() == "boot"){
 	}
 	
 	Plymouth.SetBootProgressFunction(BootRegular);
-} else if (Plymouth.GetMode() == "shutdown") {
+} else if (Plymouth.GetMode() == "shutdown" || Plymouth.GetMode() == "reboot" || Plymouth.GetMode() == "suspend") {
 	black_image = Image("black.png").Scale(Window.GetWidth(), Window.GetHeight());
 	black_sprite = Sprite(black_image);
 	black_sprite.SetX(0);
@@ -268,9 +272,9 @@ if (Plymouth.GetMode() == "boot"){
 	for (i = 0; i < 12; i++) {
 	    add_sprite_now("floor_twig.png", Math.Random(), 1);
 	}
-	
-    for (i = 0; i < sprite_count; i++)
+    for (i = 0; i < sprite_count; i++) {
         sprites[i].SetOpacity(1);
+    }
 	Plymouth.SetBootProgressFunction(ShutdownRegular);
 }
 
@@ -286,9 +290,9 @@ start_x = (Window.GetWidth() - total_width) / 2;
 status_sprite = Sprite(status_image);
 status_sprite.SetX(start_x);
 status_sprite.SetY(Window.GetHeight() * 0.8);
-status_sprite.SetZ(2);
+status_sprite.SetZ(0);
 
 status_text_sprite = Sprite(status_text_image);
 status_text_sprite.SetX(start_x + status_image.GetWidth());
 status_text_sprite.SetY(Window.GetHeight() * 0.8);
-status_text_sprite.SetZ(2);
+status_text_sprite.SetZ(0);

@@ -5,4 +5,4 @@ ModuleName=script
 
 [script]
 ImageDir=/usr/share/plymouth/themes/tcoaal
-ScriptFile=/usr/share/plymouth/themes/custom/tcoaal.script
+ScriptFile=/usr/share/plymouth/themes/tcoaal/tcoaal.script
