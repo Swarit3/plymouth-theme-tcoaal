@@ -2,17 +2,27 @@
 
 #Videos
 ##Regular Booting:
-![boot1](/screenshots/boot.mp4)
-![boot2](/screenshots/boot2.mp4)
-
+<video controls width="600">
+  <source src="boot.mp4" type="video/mp4">
+</video>
+<video controls width="600">
+  <source src="boot2.mp4" type="video/mp4">
+</video>
 ##Showing A Message:
-![message](/screenshots/message.mp4)
+<video controls width="600">
+  <source src="message.mp4" type="video/mp4">
+</video>
 
 ##Asking a Security Password:
-![question](/screenshots/question.mp4)
+<video controls width="600">
+  <source src="question.mp4" type="video/mp4">
+</video>
 
 ##Rebooting:
-![reboot](/screenshots/reboot.mp4)
-
+<video controls width="600">
+  <source src="reboot.mp4" type="video/mp4">
+</video>
 ##Shutting Down:
-![shutdown](/screenshots/shutdown.mp4)
+<video controls width="600">
+  <source src="shutdown.mp4" type="video/mp4">
+</video>
