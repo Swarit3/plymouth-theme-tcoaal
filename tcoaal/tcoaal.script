@@ -1,9 +1,5 @@
-#You're looking for this:
 bgrt_x1 = 0.3;
-#And this too:
 bgrt_y1 = 0.1815;
-
-
 
 bgrt_image = Image("bgrt.png");
 bgrt_sprite = Sprite(bgrt_image);
@@ -21,10 +17,14 @@ bg_sprite.SetY(Window.GetHeight() / 2 - bg_image.GetHeight() / 2);
 bg_sprite.SetZ(-1);
 bg_sprite.SetOpacity(0);
 
+font = "Gloria Hallelujah Bold 20";
 sprites = [];
+bg_sprites = [];
 sprite_count = 0;
+bg_sprite_count = 0;
 added = [];
 fading_out = 0;
+message_pos = 0.75;
 
 fun add_sprite(image_file, x, y) {
     img = Image(image_file);
@@ -65,8 +65,8 @@ fun is_overlapping(x, y, w, h) {
     // check bgrt
     px = Window.GetWidth() * x;
     py = Window.GetHeight() * y;
-    if (px < bgrt_x2 * Window.GetWidth() && px + w > bgrt_x1 * Window.GetWidth() &&
-        py < bgrt_y2 * Window.GetHeight() && py + h > bgrt_y1 * Window.GetHeight())
+    if (px < bgrt_x1 * Window.GetWidth() && px + w > bgrt_x2 * Window.GetWidth() &&
+        py < bgrt_y1 * Window.GetHeight() && py + h > bgrt_y2 * Window.GetHeight())
         return 1;
     // check other sprites
     for (i = 0; i < placed_count; i++) {
@@ -88,8 +88,8 @@ fun add_sprite_safe(image_file, margin) {
         local.x = Math.Random();
         local.y = Math.Random();
         attempts++;
+        if (attempts >= 50) return; // give up rather than overlap
     }
-    if (attempts >= 50) return; // give up rather than overlap
     px = Math.Clamp(Window.GetWidth() * local.x, 0, Window.GetWidth() - w);
     py = Math.Clamp(Window.GetHeight() * local.y, 0, Window.GetHeight() - h);
     spr = Sprite(img);
@@ -97,8 +97,8 @@ fun add_sprite_safe(image_file, margin) {
     spr.SetY(py);
     spr.SetZ(1);
     spr.SetOpacity(0);
-    sprites[sprite_count] = spr;
-    sprite_count++;
+    bg_sprites[bg_sprite_count] = spr;
+    bg_sprite_count++;
     placed[placed_count].x = px;
     placed[placed_count].y = py;
     placed[placed_count].w = w;
@@ -115,6 +115,12 @@ fun refresh_callback() {
         op = sprites[i].GetOpacity();
         if (op < 1){
             sprites[i].SetOpacity(Math.Min(op + 0.02, 1));
+            }
+    }
+    for (i = 0; i < bg_sprite_count; i++) {
+        op = bg_sprites[i].GetOpacity();
+        if (op < 0.6){
+            bg_sprites[i].SetOpacity(Math.Min(op + 0.02, 1));
             }
     }
     if (fading_out) {
@@ -244,6 +250,7 @@ fun ShutdownRegular(time, progress) {
         global.fading_out = 1;
 }
 
+
 if (Plymouth.GetMode() == "boot"){
 	for (i = 0; i < 8; i++) {
 	    add_sprite("floor_bush.png", Math.Random(), 1);
@@ -256,7 +263,8 @@ if (Plymouth.GetMode() == "boot"){
 	}
 	
 	Plymouth.SetBootProgressFunction(BootRegular);
-} else if (Plymouth.GetMode() == "shutdown" || Plymouth.GetMode() == "reboot" || Plymouth.GetMode() == "suspend") {
+}
+else if (Plymouth.GetMode() == "shutdown" || Plymouth.GetMode() == "reboot" || Plymouth.GetMode() == "suspend") {
 	black_image = Image("black.png").Scale(Window.GetWidth(), Window.GetHeight());
 	black_sprite = Sprite(black_image);
 	black_sprite.SetX(0);
@@ -289,10 +297,148 @@ start_x = (Window.GetWidth() - total_width) / 2;
 
 status_sprite = Sprite(status_image);
 status_sprite.SetX(start_x);
-status_sprite.SetY(Window.GetHeight() * 0.8);
+status_sprite.SetY(Window.GetHeight() * message_pos - (status_text_image.GetHeight() / 2));
 status_sprite.SetZ(0);
 
 status_text_sprite = Sprite(status_text_image);
 status_text_sprite.SetX(start_x + status_image.GetWidth());
-status_text_sprite.SetY(Window.GetHeight() * 0.8);
+status_text_sprite.SetY(Window.GetHeight() * message_pos - (status_text_image.GetHeight() / 2));
 status_text_sprite.SetZ(0);
+
+
+
+prompt_image = Image("prompt.png");
+prompt_image = prompt_image.Scale(prompt_image.GetWidth() * 1.3, prompt_image.GetHeight() * 1.3);
+prompt_sprite = Sprite(prompt_image);
+
+prompt_sprite.SetX(Window.GetWidth() / 2 - prompt_image.GetWidth() / 2);
+prompt_sprite.SetY(Window.GetHeight() * message_pos - (prompt_image.GetHeight() / 2));
+prompt_sprite.SetZ(4);
+prompt_sprite.SetOpacity(0);
+
+
+bullet_img = Image("bullet.png");
+
+password_sprites = [];
+password_sprite_count = 0;
+sys_prompt = Sprite();
+sys_input = Sprite();
+
+
+fun return_normal() {
+    prompt_sprite.SetOpacity(0);
+    status_text_sprite.SetOpacity(1);
+    status_sprite.SetOpacity(1);
+	sys_prompt = NULL;
+	sys_input = NULL;
+
+    for (i = 0; i < password_sprite_count; i++) {
+		password_sprites[i] = NULL;
+    }
+}
+
+
+fun display_password(prompt, bullets) {
+    bw = bullet_img.GetWidth();
+
+    total_w = bullets * bw;
+    start_x = Window.GetWidth() / 2 - total_w / 2;
+
+    prompt_sprite.SetOpacity(1);
+    status_text_sprite.SetOpacity(0);
+    status_sprite.SetOpacity(0);
+
+	sys_prompt_image = Image.Text(prompt, 1, 0, 0, 1, font, "center");
+    sys_prompt = Sprite(sys_prompt_image);
+    sys_prompt.SetX(Window.GetWidth() / 2 - sys_prompt_image.GetWidth() / 2);
+    sys_prompt.SetY(Window.GetHeight() * (message_pos - 0.05) - (sys_prompt_image.GetHeight() / 2));
+    sys_prompt.SetZ(5);
+    sys_prompt.SetOpacity(1);
+
+    while (password_sprite_count < bullets) {
+        spr = Sprite(bullet_img);
+        spr.SetZ(5);
+
+        password_sprites[password_sprite_count] = spr;
+        password_sprite_count++;
+    }
+
+    for (i = 0; i < password_sprite_count; i++) {
+        spr = password_sprites[i];
+
+        if (i < bullets) {
+            spr.SetOpacity(1);
+            spr.SetX(start_x + i * bw);
+            spr.SetY(Window.GetHeight() * message_pos - (bullet_img.GetHeight() / 2));
+        }
+        else
+        	spr.SetOpacity(0);
+    }
+}
+
+fun display_question(prompt, response) {
+
+    start_x = Window.GetWidth() / 2 - total_w / 2;
+
+    prompt_sprite.SetOpacity(1);
+    status_text_sprite.SetOpacity(0);
+    status_sprite.SetOpacity(0);
+
+	sys_prompt_image = Image.Text(prompt, 1, 0, 0, 1, font, "center");
+    sys_prompt = Sprite(sys_prompt_image);
+    sys_prompt.SetX(Window.GetWidth() / 2 - sys_prompt_image.GetWidth() / 2);
+    sys_prompt.SetY(Window.GetHeight() * 0.7);
+    sys_prompt.SetZ(5);
+    sys_prompt.SetOpacity(1);
+	sys_input_image = Image.Text(response, 1, 0, 0, 1, "Gloria Hallelujah Bold 18", "center");
+    sys_input = Sprite(sys_input_image);
+    sys_input.SetX(Window.GetWidth() / 2 - sys_input_image.GetWidth() / 2);
+    sys_input.SetY(Window.GetHeight() * message_pos - (sys_input_image.GetHeight() / 2));
+    sys_input.SetZ(5);
+    sys_input.SetOpacity(1);
+
+}
+
+
+fun display_message(message) {
+
+    start_x = Window.GetWidth() / 2 - total_w / 2;
+
+    status_text_sprite.SetOpacity(0);
+    status_sprite.SetOpacity(0);
+
+	sys_prompt_image = Image.Text(message, 1, 0, 0, 1, font, "center");
+    sys_prompt = Sprite(sys_prompt_image);
+    sys_prompt.SetX(Window.GetWidth() / 2 - sys_prompt_image.GetWidth() / 2);
+    sys_prompt.SetY(Window.GetHeight() * message_pos);
+    sys_prompt.SetZ(5);
+    sys_prompt.SetOpacity(1);
+}
+
+fun change_status(status) {
+	status_image = Image("status/" + status + ".png");
+	status_text_image = Image("status/" + status + "_text.png");
+
+	status_text_image = status_text_image.Scale(status_text_image.GetWidth() / 2 , status_text_image.GetHeight() / 2);
+	status_image = status_image.Scale(status_image.GetWidth() * 1.5 , status_image.GetHeight() * 1.5);
+
+	total_width = status_image.GetWidth() + status_text_image.GetWidth();
+	start_x = (Window.GetWidth() - total_width) / 2;
+
+	status_sprite = Sprite(status_image);
+	status_sprite.SetX(start_x);
+	status_sprite.SetY(Window.GetHeight() * message_pos - (status_text_image.GetHeight() / 2));
+	status_sprite.SetZ(0);
+
+	status_text_sprite = Sprite(status_text_image);
+	status_text_sprite.SetX(start_x + status_image.GetWidth());
+	status_text_sprite.SetY(Window.GetHeight() * message_pos - (status_text_image.GetHeight() / 2));
+	status_text_sprite.SetZ(0);
+}
+
+Plymouth.SetUpdateStatusFunction(change_status);
+Plymouth.SetMessageFunction(display_message);
+Plymouth.SetDisplayPasswordFunction(display_password);
+Plymouth.SetDisplayQuestionFunction(display_question);
+Plymouth.SetDisplayNormalFunction(return_normal);
+Plymouth.SetUpdateStatusFunction(update_status);

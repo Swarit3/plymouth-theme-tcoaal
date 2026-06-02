@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 if [[ "$USER" == "root" ]]; then
 	cp -r ./tcoaal /usr/share/plymouth/themes/tcoaal
+	cp ./fonts/GloriaHallelujah-Regular.ttf /usr/share/fonts/GloriaHallelujah-Regular.ttf
 
 	
 	if [[ -f "/sys/firmware/acpi/bgrt/image" ]]; then
